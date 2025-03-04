@@ -90,14 +90,7 @@ status:
 
 ```
 
-## Assigning Egress IP to `netnamespace` test and `hostsubnet `
-
-In this example, we will use Egress IPs ` 192.168.122.4 ` till `192.168.122.6` with dynamic assignment and `192.168.122.7` till `192.168.122.9` for manual assignment
-
-Dynamic assignment ---> 192.168.122.4 - 192.168.122.6
-Manual Assignment ---> 192.168.122.7 - 192.168.122.9
-
-
+## Creating environemnt to test Egress IP working
 
 I have created a test VM outside openshift cluster.This will will help us identify if the Egress IP is working fine
 
@@ -154,6 +147,99 @@ cluster1-worker-2.awezlab.local     Ready    worker                 15h   v1.27.
 ```
 
 
+## Assigning `egressIP` to `netnamespace` and `hostsubnet`
 
+In this example, we will use Egress IPs ` 192.168.122.4 ` till `192.168.122.6` with dynamic assignment and `192.168.122.7` till `192.168.122.9` for manual assignment
+
+Dynamic assignment ---> 192.168.122.4 - 192.168.122.6
+Manual Assignment ---> 192.168.122.7 - 192.168.122.9
+
+
+
+Assigning Egress IP to the namespace
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc patch netnamespace test --type=merge -p  '{
+    "egressIPs": [
+      "192.168.122.4"
+    ]                
+  }'
+netnamespace.network.openshift.io/test patched
+
+[root@ampere-mtsnow-altra-10 ~]# oc get netnamespace | grep -i test
+test                                               16155714   ["192.168.122.4"]
+
+```
+
+Assigning Egress CIDR to worker-0 with dynamic assignment
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc patch hostsubnet cluster1-worker-0.awezlab.local --type=merge -p   '{
+    "egressCIDRs": [
+      "192.168.122.0/29"
+      ]              
+  }'
+hostsubnet.network.openshift.io/cluster1-worker-0.awezlab.local patched
+
+
+[root@ampere-mtsnow-altra-10 ~]# oc get hostsubnet 
+NAME                                HOST                                HOST IP           SUBNET          EGRESS CIDRS           EGRESS IPS
+cluster1-ctlplane-0.awezlab.local   cluster1-ctlplane-0.awezlab.local   192.168.122.144   10.134.0.0/23                          
+cluster1-ctlplane-1.awezlab.local   cluster1-ctlplane-1.awezlab.local   192.168.122.19    10.132.0.0/23                          
+cluster1-ctlplane-2.awezlab.local   cluster1-ctlplane-2.awezlab.local   192.168.122.71    10.133.0.0/23                          
+cluster1-worker-0.awezlab.local     cluster1-worker-0.awezlab.local     192.168.122.160   10.132.4.0/23   ["192.168.122.0/29"]   ["192.168.122.4"]
+cluster1-worker-1.awezlab.local     cluster1-worker-1.awezlab.local     192.168.122.227   10.133.2.0/23                          
+cluster1-worker-2.awezlab.local     cluster1-worker-2.awezlab.local     192.168.122.228   10.132.2.0/23                          
+cluster1-worker-3.awezlab.local     cluster1-worker-3.awezlab.local     192.168.122.195   10.135.0.0/23                          
+cluster1-worker-4.awezlab.local     cluster1-worker-4.awezlab.local     192.168.122.223   10.134.2.0/23                          
+cluster1-worker-5.awezlab.local     cluster1-worker-5.awezlab.local     192.168.122.198   10.135.2.0/23
+```
+
+Adding a new EgressIP to another project
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc patch netnamespace newtest --type=merge -p  '{
+    "egressIPs": [
+      "192.168.122.7"
+    ]
+  }'
+netnamespace.network.openshift.io/newtest patched
+```
+Assigning Egress CIDR to worker-1 with manual assignment
+
+```
+
+[root@ampere-mtsnow-altra-10 ~]#  oc patch hostsubnet cluster1-worker-1.awezlab.local --type=merge -p \
+  '{
+    "egressIPs": [
+      "192.168.122.7"                                                                  
+      ]             
+  }'                                                                                   
+hostsubnet.network.openshift.io/cluster1-worker-1.awezlab.local patched
+
+
+[root@ampere-mtsnow-altra-10 ~]# oc get hostsubnet
+NAME                                HOST                                HOST IP           SUBNET          EGRESS CIDRS           EGRESS IPS
+cluster1-ctlplane-0.awezlab.local   cluster1-ctlplane-0.awezlab.local   192.168.122.144   10.134.0.0/23                          
+cluster1-ctlplane-1.awezlab.local   cluster1-ctlplane-1.awezlab.local   192.168.122.19    10.132.0.0/23                          
+cluster1-ctlplane-2.awezlab.local   cluster1-ctlplane-2.awezlab.local   192.168.122.71    10.133.0.0/23                          
+cluster1-worker-0.awezlab.local     cluster1-worker-0.awezlab.local     192.168.122.160   10.132.4.0/23   ["192.168.122.0/29"]   ["192.168.122.4"]
+cluster1-worker-1.awezlab.local     cluster1-worker-1.awezlab.local     192.168.122.227   10.133.2.0/23                          ["192.168.122.7"]
+cluster1-worker-2.awezlab.local     cluster1-worker-2.awezlab.local     192.168.122.228   10.132.2.0/23                          
+cluster1-worker-3.awezlab.local     cluster1-worker-3.awezlab.local     192.168.122.195   10.135.0.0/23                          
+cluster1-worker-4.awezlab.local     cluster1-worker-4.awezlab.local     192.168.122.223   10.134.2.0/23                          
+cluster1-worker-5.awezlab.local     cluster1-worker-5.awezlab.local     192.168.122.198   10.135.2.0/23       
+```
+
+
+Verifying if the curl from pods are going through Egress Ips 
+
+```
+
+```
+![image](https://github.com/user-attachments/assets/7a93497f-62a2-454a-8ad4-d9b03cf93a06)
+
+
+## Performing the migration 
 
 
