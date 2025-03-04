@@ -234,9 +234,6 @@ cluster1-worker-5.awezlab.local     cluster1-worker-5.awezlab.local     192.168.
 
 Verifying if the curl from pods are going through Egress Ips 
 
-```
-
-```
 ![image](https://github.com/user-attachments/assets/7a93497f-62a2-454a-8ad4-d9b03cf93a06)
 
 
