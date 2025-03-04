@@ -97,7 +97,7 @@ In this example, we will use Egress IPs ` 192.168.122.4 ` till `192.168.122.6` w
 Dynamic assignment ---> 192.168.122.4 - 192.168.122.6
 Manual Assignment ---> 192.168.122.7 - 192.168.122.9
 
-```
+
 
 I have created a test VM outside openshift cluster.This will will help us identify if the Egress IP is working fine
 
