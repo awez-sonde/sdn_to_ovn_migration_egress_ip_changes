@@ -89,3 +89,71 @@ status:
 
 
 ```
+
+## Assigning Egress IP to `netnamespace` test and `hostsubnet `
+
+In this example, we will use Egress IPs ` 192.168.122.4 ` till `192.168.122.6` with dynamic assignment and `192.168.122.7` till `192.168.122.9` for manual assignment
+
+Dynamic assignment ---> 192.168.122.4 - 192.168.122.6
+Manual Assignment ---> 192.168.122.7 - 192.168.122.9
+
+```
+
+I have created a test VM outside openshift cluster.This will will help us identify if the Egress IP is working fine
+
+```
+[cloud-user@testvm ~]$ systemctl status httpd
+● httpd.service - The Apache HTTP Server
+     Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; preset: disabled)
+     Active: active (running) since Tue 2025-03-04 06:16:35 EST; 7min ago
+       Docs: man:httpd.service(8)
+   Main PID: 11201 (httpd)
+     Status: "Total requests: 9; Idle/Busy workers 100/0;Requests/sec: 0.0205; Bytes served/sec:  43KB/sec"
+      Tasks: 177 (limit: 2471)
+     Memory: 13.8M
+        CPU: 261ms
+     CGroup: /system.slice/httpd.service
+             ├─11201 /usr/sbin/httpd -DFOREGROUND
+             ├─11202 /usr/sbin/httpd -DFOREGROUND
+             ├─11203 /usr/sbin/httpd -DFOREGROUND
+             ├─11204 /usr/sbin/httpd -DFOREGROUND
+             └─11205 /usr/sbin/httpd -DFOREGROUND
+
+Mar 04 06:16:35 testvm systemd[1]: Starting The Apache HTTP Server...
+Mar 04 06:16:35 testvm httpd[11201]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 192.168.122.177. Set the 'ServerName' dir>
+Mar 04 06:16:35 testvm httpd[11201]: Server configured, listening on: port 80
+Mar 04 06:16:35 testvm systemd[1]: Started The Apache HTTP Server.
+
+
+[cloud-user@testvm ~]$ ip -4 a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    altname enp3s0
+    inet 192.168.122.177/24 brd 192.168.122.255 scope global dynamic noprefixroute eth0
+       valid_lft 2921sec preferred_lft 2921sec
+```
+
+Performing a curl from a pod within `test` namespace to this VM IP i.e `192.168.122.177` and then taking tcpdumps on VM to identify the incoming IP 
+
+![image](https://github.com/user-attachments/assets/dd4da418-dd40-4dca-b74d-3363b8618a9b)
+
+The incoming IP is 192.168.122.228 i.e the node IP where the pod resides.
+
+We can confirm this below.
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc get po -o wide
+NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE                              NOMINATED NODE   READINESS GATES
+httpd-hello-f485fb875-2jw4n   1/1     Running   0          25m   10.132.2.10   cluster1-worker-2.awezlab.local   <none>           <none>
+
+
+[root@ampere-mtsnow-altra-10 ~]# oc get node -o wide | grep -i cluster1-worker-2.awezlab.local
+cluster1-worker-2.awezlab.local     Ready    worker                 15h   v1.27.16+03a907c   192.168.122.228   <none>        Red Hat Enterprise Linux CoreOS 414.92.202502111902-0 (Plow)   5.14.0-284.104.1.el9_2.aarch64   cri-o://1.27.8-13.rhaos4.14.gitaf2f916.el9
+```
+
+
+
+
+
