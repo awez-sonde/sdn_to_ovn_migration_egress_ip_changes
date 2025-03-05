@@ -1,0 +1,18 @@
+apiVersion: k8s.ovn.org/v1
+kind: EgressIP
+metadata:
+  creationTimestamp: "2025-03-04T12:26:20Z"
+  generation: 3
+  name: egressip-newtest
+  resourceVersion: "843684"
+  uid: aa6da448-abc4-4004-bfff-a45d0e4f29cd
+spec:
+  egressIPs:
+  - 192.168.122.7
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: newtest
+status:
+  items:
+  - egressIP: 192.168.122.7
+    node: cluster1-worker-0.awezlab.local
