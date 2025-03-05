@@ -239,4 +239,7 @@ Verifying if the curl from pods are going through Egress Ips
 
 ## Performing the migration 
 
+Using https://github.com/awez-sonde/ovnmigration-networkpolicies 
+
+
 
