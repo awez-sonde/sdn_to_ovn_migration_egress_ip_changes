@@ -325,7 +325,7 @@ Lets identify which IP is assigned to which node
 
 ```
 
-Let's check the high availability. I will shutdown the worker1 so the egress ip should move to worker-0
+Let's check the high availability. I will shutdown the worker-1 so the egress ip should move to worker-0
 
 ```
 
@@ -384,7 +384,7 @@ Now lets check the Egress Ips
 Both of the egressIps successfully moved to worker-0 
 
 
-Finally lets test the working of egressIP , i will curl from inside the pod to the external we server and using tcpdumps i will identify the IP address the curl request is coming from
+Finally lets test the working of egressIP , i will curl from inside the pod to the external httpd VM we created earlier and using tcpdumps i will identify the IP address the curl request is coming from
 
 ```
 [root@ampere-mtsnow-altra-10 ~]# oc project
