@@ -242,4 +242,65 @@ Verifying if the curl from pods are going through Egress Ips
 Using https://github.com/awez-sonde/ovnmigration-networkpolicies 
 
 
+## Post migraton status
 
+Verifying if the migration was successfull
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc get network.config/cluster -o jsonpath='{.status.networkType}{"\n"}'
+OVNKubernetes
+
+
+```
+
+Check the egress Ips
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc get hostsubnet
+NAME                                HOST                                HOST IP           SUBNET          EGRESS CIDRS   EGRESS IPS
+cluster1-ctlplane-0.awezlab.local   cluster1-ctlplane-0.awezlab.local   192.168.122.144   10.134.0.0/23                  
+cluster1-ctlplane-1.awezlab.local   cluster1-ctlplane-1.awezlab.local   192.168.122.19    10.132.0.0/23                  
+cluster1-ctlplane-2.awezlab.local   cluster1-ctlplane-2.awezlab.local   192.168.122.71    10.133.0.0/23                  
+cluster1-worker-0.awezlab.local     cluster1-worker-0.awezlab.local     192.168.122.160   10.132.4.0/23                  
+cluster1-worker-1.awezlab.local     cluster1-worker-1.awezlab.local     192.168.122.227   10.133.2.0/23                  
+cluster1-worker-2.awezlab.local     cluster1-worker-2.awezlab.local     192.168.122.228   10.132.2.0/23                  
+cluster1-worker-3.awezlab.local     cluster1-worker-3.awezlab.local     192.168.122.195   10.135.0.0/23                  
+cluster1-worker-4.awezlab.local     cluster1-worker-4.awezlab.local     192.168.122.223   10.134.2.0/23                  
+cluster1-worker-5.awezlab.local     cluster1-worker-5.awezlab.local     192.168.122.198   10.135.2.0/23                  
+
+[root@ampere-mtsnow-altra-10 ~]# oc get netnamespaces | grep -i test
+newtest                                            9713796    
+test                                               16155714   
+```
+
+Both the hostsubnet and netnamespace doesnt seem to have an IP , but lets check egressIP object which is part of OVNKubernetes
+
+```
+
+[root@ampere-mtsnow-altra-10 ~]# oc get egressip
+NAME               EGRESSIPS       ASSIGNED NODE                     ASSIGNED EGRESSIPS
+egressip-newtest   192.168.122.7   cluster1-worker-1.awezlab.local   192.168.122.7
+egressip-test      192.168.122.4   cluster1-worker-1.awezlab.local   192.168.122.4
+
+```
+
+Both egress IP's are automatically created.
+
+Now we check the nodes if the label `k8s.ovn.org/egress-assignable=""` is assigned automatically or not
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc get node --show-labels | grep -i egress
+cluster1-worker-0.awezlab.local     Ready    worker                 41h   v1.27.16+03a907c   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,k8s.ovn.org/egress-assignable=,kubernetes.io/arch=arm64,kubernetes.io/hostname=cluster1-worker-0.awezlab.local,kubernetes.io/os=linux,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
+
+cluster1-worker-1.awezlab.local     Ready    worker                 41h   v1.27.16+03a907c   beta.kubernetes.io/arch=arm64,beta.kubernetes.io/os=linux,k8s.ovn.org/egress-assignable=,kubernetes.io/arch=arm64,kubernetes.io/hostname=cluster1-worker-1.awezlab.local,kubernetes.io/os=linux,node-role.kubernetes.io/worker=,node.openshift.io/os_id=rhcos
+
+```
+
+As can be seen, only worker-0 and worker-1 have been labeled automatically since those are the only two host subnets we patched.
+
+Lets identify which IP is assigned to which node
+
+```
+
+
+```
