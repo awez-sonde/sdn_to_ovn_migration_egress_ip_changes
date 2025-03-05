@@ -382,3 +382,24 @@ Now lets check the Egress Ips
 ```
 
 Both of the egressIps successfully moved to worker-0 
+
+
+Finally lets test the working of egressIP , i will curl from inside the pod to the external we server and using tcpdumps i will identify the IP address the curl request is coming from
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc project
+Using project "test" on server "https://api.cluster1.awezlab.local:6443".
+
+[root@ampere-mtsnow-altra-10 ~]# oc get po -o name
+pod/httpd-hello-f485fb875-b4ft2
+
+
+[root@ampere-mtsnow-altra-10 ~]# oc rsh httpd-hello-f485fb875-b4ft2
+sh-4.4$ curl 192.168.122.177
+```
+
+![image](https://github.com/user-attachments/assets/0bee90cc-67b1-400b-99ac-09087503abb3)
+
+Indeed the traffic is coming from EgressIp i.e `192.168.122.4`
+
+
