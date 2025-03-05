@@ -301,6 +301,84 @@ As can be seen, only worker-0 and worker-1 have been labeled automatically since
 Lets identify which IP is assigned to which node
 
 ```
+[root@ampere-mtsnow-altra-10 ~]# oc get egressip egressip-test -o json | jq .status
+{
+  "items": [
+    {
+      "egressIP": "192.168.122.4",
+      "node": "cluster1-worker-1.awezlab.local"
+    }
+  ]
+}
+[root@ampere-mtsnow-altra-10 ~]# 
+[root@ampere-mtsnow-altra-10 ~]# 
+[root@ampere-mtsnow-altra-10 ~]# oc get egressip egressip-newtest -o json | jq .status
+{
+  "items": [
+    {
+      "egressIP": "192.168.122.7",
+      "node": "cluster1-worker-1.awezlab.local"
+    }
+  ]
+}
 
 
 ```
+
+Let's check the high availability. I will shutdown the worker1 so the egress ip should move to worker-0
+
+```
+
+[root@ampere-mtsnow-altra-10 ~]# oc debug node/cluster1-worker-1.awezlab.local
+Temporary namespace openshift-debug-srp86 is created for debugging node...
+Starting pod/cluster1-worker-1awezlablocal-debug-qkdcv ...
+To use host binaries, run `chroot /host`
+Pod IP: 192.168.122.227
+If you don't see a command prompt, try pressing enter.
+sh-4.4# chroot /host
+sh-5.1# shutdown now
+sh-5.1# 
+Removing debug pod ...
+Temporary namespace openshift-debug-srp86 was removed.
+
+
+[root@ampere-mtsnow-altra-10 ~]# oc get nodes
+NAME                                STATUS     ROLES                  AGE   VERSION
+cluster1-ctlplane-0.awezlab.local   Ready      control-plane,master   42h   v1.27.16+03a907c
+cluster1-ctlplane-1.awezlab.local   Ready      control-plane,master   42h   v1.27.16+03a907c
+cluster1-ctlplane-2.awezlab.local   Ready      control-plane,master   42h   v1.27.16+03a907c
+cluster1-worker-0.awezlab.local     Ready      worker                 42h   v1.27.16+03a907c
+cluster1-worker-1.awezlab.local     NotReady   worker                 42h   v1.27.16+03a907c
+cluster1-worker-2.awezlab.local     Ready      worker                 42h   v1.27.16+03a907c
+cluster1-worker-3.awezlab.local     Ready      worker                 42h   v1.27.16+03a907c
+cluster1-worker-4.awezlab.local     Ready      worker                 42h   v1.27.16+03a907c
+cluster1-worker-5.awezlab.local     Ready      worker                 42h   v1.27.16+03a907c
+
+```
+
+Now lets check the Egress Ips
+
+```
+[root@ampere-mtsnow-altra-10 ~]# oc get egressip egressip-newtest -o json | jq .status
+{
+  "items": [
+    {
+      "egressIP": "192.168.122.7",
+      "node": "cluster1-worker-0.awezlab.local"
+    }
+  ]
+}
+[root@ampere-mtsnow-altra-10 ~]# oc get egressip egressip-test -o json | jq .status
+{
+  "items": [
+    {
+      "egressIP": "192.168.122.4",
+      "node": "cluster1-worker-0.awezlab.local"
+    }
+  ]
+}
+
+
+```
+
+Both of the egressIps successfully moved to worker-0 
