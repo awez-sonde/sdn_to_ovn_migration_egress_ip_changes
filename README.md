@@ -57,7 +57,7 @@ cluster1-worker-5.awezlab.local     cluster1-worker-5.awezlab.local     192.168.
 
 ```
 
-Verifying the network type
+Verifying the network type , confirming its OpenshiftSDN
 
 ```
 [root@ampere-mtsnow-altra-10 ~]# oc get network cluster -o yaml
@@ -92,7 +92,7 @@ status:
 
 ## Creating environemnt to test Egress IP working
 
-I have created a test VM outside openshift cluster.This will will help us identify if the Egress IP is working fine
+I have created a test VM outside the openshift cluster. This VM has a simple httpd application running. We will curl from our pods in namespaces to this VM.This will help us identify if the Egress IP is working fine
 
 ```
 [cloud-user@testvm ~]$ systemctl status httpd
